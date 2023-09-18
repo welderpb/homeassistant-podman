@@ -1,0 +1,19 @@
+[Unit]
+Description=Podman pod-ha.service
+
+[Service]
+Restart=on-failure
+RestartSec=30
+Type=simple
+RemainAfterExit=yes
+TimeoutStartSec=30
+
+ExecStartPre=/usr/bin/podman network create -d macvlan --ipam-driver dhcp -o parent=br0 pub_net
+ExecStart=/usr/bin/podman play kube --network pub_net --mac-address "a2:12:d9:bf:2b:f7" --replace /opt/homeassistant-z2m.yaml
+
+ExecStop=/usr/bin/podman pod stop smarthome
+ExecStopPost=/usr/bin/podman pod rm smarthome
+ExecStopPost=/usr/bin/podman network rm pub_net
+
+[Install]
+WantedBy=default.target
